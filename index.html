@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#163a2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Carb Tracker">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Carb Tracker</title>
+<style>
+:root{--green:#163a2b;--green2:#2e6b4d;--cream:#f7f4ed;--card:#fff;--ink:#1d2922;--muted:#6c756f;--line:#e4e0d7;--yellow:#d7a928;--red:#c84d4d;--shadow:0 6px 22px rgba(30,45,35,.08)}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:92px}
+header{background:var(--green);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 18px 20px;border-radius:0 0 24px 24px}
+.headerrow{display:flex;justify-content:space-between;align-items:center}.title{font-size:25px;font-weight:800}.subtitle{font-size:13px;opacity:.78;margin-top:3px}
+.gear{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:12px;font-size:20px;width:42px;height:42px}
+main{max-width:760px;margin:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:12px}.metric{font-size:31px;font-weight:850}.label{font-size:12px;color:var(--muted);margin-top:3px}
+.progress{height:11px;background:#e9e6de;border-radius:20px;overflow:hidden;margin-top:12px}.bar{height:100%;background:var(--green2);border-radius:20px;width:0;transition:.25s}.bar.over{background:var(--red)}
+.sectiontitle{font-size:18px;font-weight:800;margin:3px 0 12px}
+.foodgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.food{border:1px solid var(--line);background:#fff;border-radius:16px;padding:12px;text-align:left;min-height:102px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer}
+.food:active{transform:scale(.98)}.food .pic{font-size:34px;line-height:1}.food .name{font-weight:750;font-size:14px;margin-top:6px}.food .serv{font-size:12px;color:var(--green2);font-weight:750}
+.tabs{position:fixed;z-index:10;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+.tab{border:0;background:transparent;color:var(--muted);font-weight:700;font-size:12px;flex:1;max-width:130px;padding:8px 4px}.tab.active{color:var(--green)}.tab span{display:block;font-size:20px;margin-bottom:2px}
+.view{display:none}.view.active{display:block}
+.entry{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.entry:last-child{border-bottom:0}.entryname{font-weight:700}.entrymeta{font-size:12px;color:var(--muted);margin-top:2px}.remove{border:0;background:#f1eee7;border-radius:9px;padding:7px 10px;color:#555}
+.dayrow{display:flex;align-items:end;gap:7px;height:145px;margin-top:15px}.daycol{flex:1;text-align:center}.daybarwrap{height:112px;display:flex;align-items:end;justify-content:center}.daybar{width:70%;max-width:38px;background:var(--green2);border-radius:8px 8px 3px 3px;min-height:3px}.daybar.over{background:var(--red)}.daynum{font-size:10px;color:var(--muted);margin-top:5px}
+.formrow{display:flex;gap:9px;align-items:center}.input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:16px;background:#fff}.btn{border:0;background:var(--green);color:#fff;font-weight:800;border-radius:12px;padding:12px 15px}.btn.secondary{background:#eeeae1;color:var(--ink)}
+.small{font-size:12px;color:var(--muted);line-height:1.45}.notice{background:#f1f6f2;border-radius:12px;padding:12px;margin-top:10px;font-size:12px;line-height:1.45}
+.weightgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.weightbig{font-size:28px;font-weight:850}.pill{display:inline-block;background:#eef4ef;color:var(--green);padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(20px);background:#222;color:#fff;padding:11px 15px;border-radius:12px;font-weight:700;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:30}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(min-width:600px){.foodgrid{grid-template-columns:repeat(3,1fr)}main{padding-top:24px}}
+</style>
+</head>
+<body>
+<header><div class="headerrow"><div><div class="title">🥗 Carb Tracker</div><div class="subtitle">Simple portions. No calorie counting.</div></div><button class="gear" onclick="showView('settings')">⚙️</button></div></header>
+<main>
+<section id="today" class="view active">
+<div class="card">
+<div class="hero"><div><div class="metric" id="weekUsed">0</div><div class="label">servings used this week</div></div><div><div class="metric" id="weekLeft">10</div><div class="label">servings left</div></div></div>
+<div class="progress"><div class="bar" id="weekBar"></div></div>
+<div class="notice">Your 10-serving weekly ceiling is a <b>behavioral guardrail</b>, not a medical rule. Non-starchy vegetables and whole fruit generally don't need to be counted.</div>
+</div>
+<div class="card"><div class="sectiontitle">Tap what you ate</div><div class="foodgrid" id="foodGrid"></div></div>
+<div class="card"><div class="sectiontitle">Today's log</div><div id="todayLog"></div></div>
+</section>
+
+<section id="week" class="view">
+<div class="card"><div class="sectiontitle">This week</div><div class="hero"><div><div class="metric" id="wTotal">0</div><div class="label">servings</div></div><div><div class="metric" id="wDays">0</div><div class="label">days logged</div></div></div><div class="dayrow" id="dayChart"></div></div>
+<div class="card"><div class="sectiontitle">Recent entries</div><div id="weekLog"></div></div>
+</section>
+
+<section id="month" class="view">
+<div class="card"><div class="sectiontitle">This month</div><div class="hero"><div><div class="metric" id="mTotal">0</div><div class="label">servings</div></div><div><div class="metric" id="mAvg">0</div><div class="label">average per logged day</div></div></div></div>
+<div class="card"><div class="sectiontitle">Weight</div><div class="weightgrid"><div><div class="weightbig" id="currentWeight">204</div><div class="label">current lb</div></div><div><div class="weightbig">190</div><div class="label">goal lb</div></div></div><div style="margin-top:12px"><div class="progress"><div class="bar" id="weightBar"></div></div></div><div class="small" id="weightMsg" style="margin-top:8px"></div></div>
+</section>
+
+<section id="settings" class="view">
+<div class="card"><div class="sectiontitle">Settings</div><div class="small">Change the weekly serving ceiling if you want. Ten is the current starting point.</div><div class="formrow" style="margin-top:12px"><input id="budgetInput" class="input" type="number" min="1" max="50" step=".5"><button class="btn" onclick="saveBudget()">Save</button></div></div>
+<div class="card"><div class="sectiontitle">Weight tracker</div><div class="formrow"><input id="weightInput" class="input" type="number" step=".1" placeholder="Current weight"><button class="btn" onclick="saveWeight()">Save</button></div><div class="small" style="margin-top:8px">Goal: 190 lb. This is simply a progress tracker.</div></div>
+<div class="card"><div class="sectiontitle">Add your own food</div><div class="formrow"><input id="customName" class="input" placeholder="Food name"><input id="customServ" class="input" type="number" step=".5" placeholder="Servings" style="max-width:120px"><button class="btn" onclick="addCustom()">Add</button></div></div>
+<div class="card"><div class="sectiontitle">How the servings work</div><div class="small">Examples: ½ cup cooked rice = 1; ½ cup pasta = 1; 1 slice bread = 1; 1 pizza slice = 2; standard burger = 2; standard sushi roll = 3; small chip bag = 2; fist-sized chips = 1½.</div></div>
+</section>
+</main>
+<nav class="tabs"><button class="tab active" data-view="today" onclick="showView('today')"><span>➕</span>Today</button><button class="tab" data-view="week" onclick="showView('week')"><span>📊</span>Week</button><button class="tab" data-view="month" onclick="showView('month')"><span>📅</span>Month</button><button class="tab" data-view="settings" onclick="showView('settings')"><span>⚙️</span>Settings</button></nav>
+<div class="toast" id="toast"></div>
+<script>
+const defaultFoods=[
+["🍚","Rice","½ cup / ½ fist",1],["🍝","Pasta","½ cup / ½ fist",1],["🥔","Potato","½ cup / ½ fist",1],
+["🍞","Bread","1 slice",1],["🌽","Small Corn Tortilla","1 tortilla",1],["🫓","Small Flour Tortilla","1 tortilla",1],
+["🫓","Large Flour Tortilla","1 tortilla",2],["🍕","Pizza","1 slice",2],["🍔","Hamburger","1 standard bun",2],
+["🍟","Fries","1 fist",1.5],["🧅","Onion Rings","1 fist",1.5],["🥔","Tater Tots","1 fist",1.5],
+["🌭","Hot Dog","1 standard bun",2],["🥪","6-inch Sub","1 sub",3],["🍣","Sushi Roll","1 standard 6–8 piece roll",3],
+["🥔","Chips — Small Bag","~1 oz bag",2],["🥔","Chips — Fist Size","1 closed fist",1.5],["🍰","Dessert","1 normal serving / 1 fist",2]
+];
+let foods=JSON.parse(localStorage.getItem("ct_foods")||"null")||defaultFoods;
+let entries=JSON.parse(localStorage.getItem("ct_entries")||"[]");
+let budget=Number(localStorage.getItem("ct_budget")||10);
+let weight=Number(localStorage.getItem("ct_weight")||204);
+const save=()=>{localStorage.setItem("ct_entries",JSON.stringify(entries));localStorage.setItem("ct_foods",JSON.stringify(foods));localStorage.setItem("ct_budget",budget);localStorage.setItem("ct_weight",weight)};
+const key=d=>{let x=new Date(d);return x.toISOString().slice(0,10)};
+const monday=d=>{let x=new Date(d);x.setHours(0,0,0,0);let day=x.getDay();let diff=day===0?-6:1-day;x.setDate(x.getDate()+diff);return x};
+const weekEntries=()=>{let s=key(monday(new Date()));return entries.filter(e=>e.date>=s)};
+const monthEntries=()=>{let n=new Date(),p=n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0");return entries.filter(e=>e.date.startsWith(p))};
+const fmt=n=>Number.isInteger(n)?String(n):n.toFixed(1).replace(".0","");
+function renderFoods(){document.getElementById("foodGrid").innerHTML=foods.map((f,i)=>`<button class="food" onclick="addEntry(${i})"><div class="pic">${f[0]}</div><div class="name">${f[1]}</div><div class="serv">${f[3]} serving${f[3]===1?"":"s"} · ${f[2]}</div></button>`).join("")}
+function addEntry(i){let f=foods[i];entries.push({id:Date.now()+Math.random(),date:key(new Date()),name:f[1],servings:Number(f[3]),detail:f[2]});save();render();toast("Added "+f[1]+" · "+fmt(f[3])+" serving"+(f[3]===1?"":"s"))}
+function removeEntry(id){entries=entries.filter(e=>e.id!==id);save();render();toast("Removed")}
+function listHTML(arr){if(!arr.length)return '<div class="small">Nothing logged yet.</div>';return arr.slice().reverse().map(e=>`<div class="entry"><div><div class="entryname">${e.name} <span class="pill">${fmt(e.servings)}</span></div><div class="entrymeta">${e.date===key(new Date())?"Today":e.date} · ${e.detail||""}</div></div><button class="remove" onclick="removeEntry(${e.id})">Undo</button></div>`).join("")}
+function render(){renderFoods();let we=weekEntries(),used=we.reduce((a,e)=>a+e.servings,0),left=Math.max(0,budget-used);document.getElementById("weekUsed").textContent=fmt(used);document.getElementById("weekLeft").textContent=fmt(left);let pct=Math.min(100,used/budget*100);document.getElementById("weekBar").style.width=pct+"%";document.getElementById("weekBar").classList.toggle("over",used>budget);document.getElementById("todayLog").innerHTML=listHTML(entries.filter(e=>e.date===key(new Date())));document.getElementById("wTotal").textContent=fmt(used);document.getElementById("wDays").textContent=new Set(we.map(e=>e.date)).size;let start=monday(new Date()),chart="";for(let i=0;i<7;i++){let d=new Date(start);d.setDate(start.getDate()+i);let k=key(d),v=we.filter(e=>e.date===k).reduce((a,e)=>a+e.servings,0),h=Math.min(100,v/budget*100);chart+=`<div class="daycol"><div class="daybarwrap"><div class="daybar ${v>budget?"over":""}" style="height:${Math.max(3,h)}%"></div></div><div class="daynum">${d.toLocaleDateString(undefined,{weekday:"short"}).slice(0,3)}<br>${fmt(v)}</div></div>`};document.getElementById("dayChart").innerHTML=chart;document.getElementById("weekLog").innerHTML=listHTML(we);let me=monthEntries(),mt=me.reduce((a,e)=>a+e.servings,0),days=new Set(me.map(e=>e.date)).size;document.getElementById("mTotal").textContent=fmt(mt);document.getElementById("mAvg").textContent=days?fmt(mt/days):"0";document.getElementById("currentWeight").textContent=fmt(weight);let wp=Math.max(0,Math.min(100,(204-weight)/(204-190)*100));document.getElementById("weightBar").style.width=wp+"%";document.getElementById("weightMsg").textContent=weight<=190?"Goal reached.":fmt(204-weight)+" lb lost toward your 14-lb goal.";document.getElementById("budgetInput").value=budget}
+function showView(id){document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.view===id));render()}
+function saveBudget(){let v=Number(document.getElementById("budgetInput").value);if(v>0){budget=v;save();render();toast("Weekly ceiling saved")}}
+function saveWeight(){let v=Number(document.getElementById("weightInput").value);if(v>0){weight=v;save();render();toast("Weight saved")}}
+function addCustom(){let n=document.getElementById("customName").value.trim(),s=Number(document.getElementById("customServ").value);if(!n||!s)return;foods.push(["🍽️",n,"custom portion",s]);save();document.getElementById("customName").value="";document.getElementById("customServ").value="";render();toast("Food added")}
+function toast(t){let x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window._toast);window._toast=setTimeout(()=>x.classList.remove("show"),1500)}
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
+render();
+</script>
+</body></html>
