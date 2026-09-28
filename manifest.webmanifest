@@ -1,0 +1,10 @@
+{
+  "name":"Carb Tracker",
+  "short_name":"Carb Tracker",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#f7f4ed",
+  "theme_color":"#163a2b",
+  "description":"A simple personal tracker for concentrated carbohydrate servings.",
+  "icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
